@@ -4,6 +4,7 @@ from scipy.io.wavfile import read, write
 from pydub import AudioSegment
 from IPython.display import Audio
 from numpy.fft import fft, ifft
+from data_prep import timestamps_subject
 
 def detect_leading_silence(sound, silence_threshold=-50.0, chunk_size=10):
     '''
@@ -26,21 +27,16 @@ def base_audio():
     return array data, frequency, pydub.AudioSegment  
     '''
 
-    Fs, data = read('teste1.wav')
+    Fs, data = read('marcos-serafim_corte.wav')
     print('Sampling Frequency is', Fs)
     print('Minutes =', len(data) / Fs / 60)
-    channel1 = data[:, 0]
+    channel1 = data
     sound = AudioSegment(
         channel1.tobytes(),
         frame_rate = Fs,
         sample_width=channel1.dtype.itemsize,
         channels=1
     )
-
-    start_trim = detect_leading_silence(sound, -10)
-    index1 = int(start_trim * Fs)
-
-    data = data[index1:, 0]
 
     return data, Fs, AudioSegment(
         data.tobytes(),
@@ -66,10 +62,9 @@ def remove_silence(data, Fs):
     return start_trim, end_trim
 
 def trim_samples(data, Fs):
-    from subject1 import timestamps_sub1
     i = 1
 
-    for sample in timestamps_sub1:
+    for sample in timestamps_subject:
 
         start = sample[0]
         end = sample[1]
@@ -90,6 +85,7 @@ def trim_samples(data, Fs):
 
 data, Fs, audio = base_audio()
 trim_samples(data, Fs)
+
 
 # # # Audio(data, rate=Fs)
 
