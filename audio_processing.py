@@ -4,7 +4,9 @@ from scipy.io.wavfile import read, write
 from pydub import AudioSegment
 from IPython.display import Audio
 from numpy.fft import fft, ifft
-from data_prep import timestamps_subject
+import data_prep as data_proc
+
+subject_id = 11
 
 def detect_leading_silence(sound, silence_threshold=-50.0, chunk_size=10):
     '''
@@ -22,12 +24,12 @@ def detect_leading_silence(sound, silence_threshold=-50.0, chunk_size=10):
 
     return trim_ms / 1000
 
-def base_audio():
+def base_audio(subject_id):
     '''
     return array data, frequency, pydub.AudioSegment  
     '''
 
-    Fs, data = read('marcos-serafim_corte.wav')
+    Fs, data = read('./'+str(subject_id)+'.wav')
     print('Sampling Frequency is', Fs)
     print('Minutes =', len(data) / Fs / 60)
     channel1 = data
@@ -56,21 +58,22 @@ def remove_silence(data, Fs):
         channels=1
     )
 
-    start_trim = detect_leading_silence(trim_sound, -35)
+    start_trim = detect_leading_silence(trim_sound, -50)
     end_trim = detect_leading_silence(trim_sound.reverse(), -55)
 
     return start_trim, end_trim
 
-def trim_samples(data, Fs):
+def trim_samples(data, Fs, subject_id):
     i = 1
+    timestamps_subject = data_proc.main(subject_id)
 
     for sample in timestamps_subject:
 
         start = sample[0]
         end = sample[1]
 
-        index1 = int(start * Fs)
-        index2 = int(end * Fs)
+        index1 = int((start - 0.3) * Fs)
+        index2 = int((end - 0.0) * Fs)
 
         sample_data = data[index1:index2]
 
@@ -79,12 +82,12 @@ def trim_samples(data, Fs):
         start_trim = int(s1 * Fs)
         end_trim = int(len(sample_data) - (s2 * Fs))
 
-        write('sample'+str(i)+'.wav', Fs, sample_data[start_trim:end_trim])
+        write('.\subject'+str(subject_id) + "\sub" + str(subject_id) + '_sample'+str(i)+'.wav', Fs, sample_data[start_trim:end_trim])
         i += 1
 
 
-data, Fs, audio = base_audio()
-trim_samples(data, Fs)
+data, Fs, audio = base_audio(subject_id)
+trim_samples(data, Fs, subject_id)
 
 
 # # # Audio(data, rate=Fs)
